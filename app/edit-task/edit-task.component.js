@@ -5,8 +5,8 @@ angular.module("editTask").component("editTask", {
     "$location",
     "$routeParams",
     function(taskFactory, $location, $routeParams) {
-      this.task = taskFactory.getActiveTasks().find(task => {
-        return task.id === +$routeParams.id;
+      this.task = taskFactory.getTasks().find(task => {
+        return task.id === $routeParams.id;
       });
 
       this.editTask = function(taskText) {

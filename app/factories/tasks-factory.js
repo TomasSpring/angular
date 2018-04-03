@@ -1,49 +1,40 @@
-export default $resource => {
-  let taskListActive = $resource("./app/json/task-list-active.json").query(
-    { method: "GET" },
-    response => {
-      return response;
-    }
-  );
+const api = 'http://localhost:3000/blogs/';
 
-  let taskListComleted = $resource("./app/json/task-list-completed.json").query(
-    { method: "GET" },
-    response => {
-      return response;
-    }
-  );
+export default $resource => {
+  let taskList = $resource(api).query();
 
   return {
-    // active tasks
-    getActiveTasks() {
-      return taskListActive;
+    getTasks() {
+      return taskList;
     },
-    addTask(text) {
-      taskListActive.push({
-        id: Date.now(),
-        text,
-        created: new Date().toJSON()
+
+    getTask(id) {
+      return $resource(api + id).query();
+    },
+    addTask(task) {
+      $resource(api + 'add').save(JSON.stringify(task), task => {
+      taskList.push(task);
       });
     },
-    removeTask(task) {
-      taskListActive.splice(taskListActive.indexOf(task), 1);
-    },
-    moveToCompleted(task) {
-      taskListComleted.push(task);
-      taskListActive.splice(taskListActive.indexOf(task), 1);
-    },
-    // completed tasks
-    getCompletedTasks() {
-      return taskListComleted;
-    },
-    moveToActive(task) {
-      taskListActive.push(task);
-      taskListComleted.splice(taskListComleted.indexOf(task), 1);
+    
+    removeTask(id) {
+      return $resource(api + id)
+        .delete()
+        .$promise.then(
+          () => (taskList = taskList.filter(task => task._id !== id)),
+          error => console.log(error),
+        );
     },
     // edit task
     editTask(task) {
-      const taskIndex = taskListActive.findIndex(item => item.id === task.id);
-      taskListActive.splice(taskIndex, 1, task);
-    }
+      return $resource(api + task._id, null, {
+        update: { method: 'PUT' },
+      })
+        .update(JSON.stringify(task))
+        .$promise.then(
+          () => console.log('update'),
+          error => console.log(error),
+        );
+    },
   };
 };
